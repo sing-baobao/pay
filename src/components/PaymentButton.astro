@@ -1,0 +1,66 @@
+---
+// src/components/PaymentButton.astro
+interface Props {
+  amount?: number;
+  currency?: string;
+  email?: string;
+}
+
+const { 
+  amount = 10.00, 
+  currency = 'SGD', 
+  email = 'player@example.com',
+} = Astro.props;
+---
+<div class="payment-container">
+  <button id="pay-btn" data-amount={amount} data-currency={currency} data-email={email}>
+    Pay ${amount.toFixed(2)} {currency}
+  </button>
+  <p id="pay-error" class="error-msg" style="display: none; color: red;"></p>
+</div>
+
+<script>
+  import { API_URL } from '../config.js';
+  const payBtn = document.getElementById('pay-btn');
+  const errorMsg = document.getElementById('pay-error');
+
+  if (payBtn) {
+    payBtn.addEventListener('click', async () => {
+      const amount = parseFloat(payBtn.getAttribute('data-amount') || '10');
+      const currency = payBtn.getAttribute('data-currency') || 'SGD';
+      const email = payBtn.getAttribute('data-email') || 'player@example.com';
+
+      payBtn.setAttribute('disabled', 'true');
+      payBtn.textContent = 'Processing...';
+      if (errorMsg) errorMsg.style.display = 'none';
+
+      try {
+        const response = await fetch(`${API_URL}/api/payment/create`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ amount, currency, email })
+        });
+
+        const data = await response.json();
+
+        if (!response.ok) {
+          throw new Error(data.error?.message || 'Failed to initialize payment.');
+        }
+
+        if (data.url) {
+          window.location.href = data.url;
+        } else {
+          throw new Error('No checkout URL returned from server.');
+        }
+      } catch (err: any) {
+        console.error('Payment error:', err);
+        if (errorMsg) {
+          errorMsg.textContent = err.message || 'An error occurred.';
+          errorMsg.style.display = 'block';
+        }
+        payBtn.removeAttribute('disabled');
+        payBtn.textContent = `Pay $${amount.toFixed(2)} ${currency}`;
+      }
+    });
+  }
+</script>
