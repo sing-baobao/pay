@@ -2,14 +2,24 @@
 import Layout from '../../layouts/Layout.astro';
 ---
 
-<Layout title="Authenticating...">
+<Layout title="Verifying Payment...">
   <div style="text-align: center; margin-top: 100px;">
-    <h2>Verifying your session...</h2>
-    <p>Please wait while we log you in.</p>
+    <h2>Verifying your payment...</h2>
+    <p>Please wait while we redirect you.</p>
   </div>
 </Layout>
 
 <script>
-    // Redirect cleanly to root SPA dashboard
-    window.location.href = "/";
+  const params = new URLSearchParams(window.location.search);
+  const status = params.get('status');
+  const reference = params.get('reference');
+
+  if (status === 'completed' || reference) {
+    const nextParams = new URLSearchParams();
+    nextParams.set('payment', 'success');
+    if (reference) nextParams.set('reference', reference);
+    window.location.replace(`/?${nextParams.toString()}`);
+  } else {
+    window.location.replace('/');
+  }
 </script>

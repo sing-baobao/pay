@@ -1,18 +1,44 @@
 ---
-// src/pages/index.astro
 import Layout from '../layouts/Layout.astro';
 import PaymentButton from '../components/PaymentButton.astro';
 ---
 
 <Layout title="Payment Application">
   <div style="text-align: center; margin-top: 100px;">
+    
+    <!-- Success Banner -->
+    <div id="success-banner" style="display: none; max-width: 480px; margin: 0 auto 24px; background-color: #d4edda; color: #155724; padding: 16px; border-radius: 6px; border: 1px solid #c3e6cb;">
+      <h2 style="margin: 0 0 8px;">Payment Successful</h2>
+      <p id="success-details" style="margin: 0;">Your transaction has been completed.</p>
+    </div>
+
     <!-- PAY SECTION -->
     <div id="paySection">
       <div class="header-block">
         <h1>Create Payment</h1>
       </div>
-		<!-- Render component with custom values -->
-		<PaymentButton amount={10.00} currency="SGD" email="gamer@example.com" />
+      <PaymentButton amount={10.00} currency="SGD" email="gamer@example.com" />
     </div>
   </div>
 </Layout>
+
+<script>
+  const urlParams = new URLSearchParams(window.location.search);
+  const paymentStatus = urlParams.get('payment');
+  const reference = urlParams.get('reference');
+
+  if (paymentStatus === 'success') {
+    const successBanner = document.getElementById('success-banner');
+    const successDetails = document.getElementById('success-details');
+
+    if (successDetails && reference) {
+      successDetails.textContent = `Transaction completed (Ref: ${reference}).`;
+    }
+    if (successBanner) {
+      successBanner.style.display = 'block';
+    }
+
+    // Clean the query string from the URL bar without reloading
+    window.history.replaceState({}, document.title, window.location.pathname);
+  }
+</script>
